@@ -8,5 +8,15 @@ package exception;
  */
 public class TrafficJamException extends Exception {
 
-    // TODO: Tạo constructor(s)
+    public TrafficJamException() {
+        super();
+    }
+
+    public TrafficJamException(String message) {
+        super(message);
+    }
+
+    public TrafficJamException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

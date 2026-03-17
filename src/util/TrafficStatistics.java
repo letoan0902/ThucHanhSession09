@@ -2,8 +2,6 @@ package util;
 
 import entity.Vehicle;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,22 +19,28 @@ public class TrafficStatistics {
 
     /**
      * Ghi nhận 1 xe đã đi qua ngã tư thành công.
+     * 
      * @param vehicle xe đã qua
      */
     public void recordVehiclePassed(Vehicle vehicle) {
-        // TODO: Tăng totalVehiclesPassed
-        // TODO: Tăng count theo loại xe trong vehicleCountByType
+        totalVehiclesPassed.incrementAndGet();
+
+        String vehicleType = vehicle.getClass().getSimpleName();
+        vehicleCountByType
+                .computeIfAbsent(vehicleType, k -> new AtomicInteger(0))
+                .incrementAndGet();
     }
 
     /**
      * Ghi nhận 1 lần kẹt xe.
      */
     public void recordTrafficJam() {
-        // TODO: trafficJamCount.incrementAndGet();
+        trafficJamCount.incrementAndGet();
     }
 
     /**
      * Lấy tổng số xe đã qua ngã tư.
+     * 
      * @return tổng xe
      */
     public int getTotalVehiclesPassed() {
@@ -45,6 +49,7 @@ public class TrafficStatistics {
 
     /**
      * Lấy số lần kẹt xe.
+     * 
      * @return số lần kẹt
      */
     public int getTrafficJamCount() {
@@ -56,8 +61,15 @@ public class TrafficStatistics {
      * Dùng Stream API để thống kê số xe theo loại.
      */
     public void printReport() {
-        // TODO: In tổng số xe đã qua
-        // TODO: In số xe theo từng loại (dùng Stream API)
-        // TODO: In số lần kẹt xe
+        System.out.println("\n========== TRAFFIC STATISTICS REPORT ==========");
+        System.out.println("Total vehicles passed: " + getTotalVehiclesPassed());
+
+        System.out.println("\nVehicle count by type:");
+        vehicleCountByType.entrySet()
+                .stream()
+                .forEach(entry -> System.out.println("- " + entry.getKey() + ": " + entry.getValue().get()));
+
+        System.out.println("\nTraffic jam occurrences: " + getTrafficJamCount());
+        System.out.println("===============================================\n");
     }
 }
