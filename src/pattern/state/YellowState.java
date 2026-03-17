@@ -1,23 +1,16 @@
 package pattern.state;
 
-/**
- * Trạng thái ĐÈN VÀNG - Cảnh báo sắp chuyển đỏ, xe nên giảm tốc.
- * Chuyển sang RedState sau khi hết thời gian.
- *
- */
 public class YellowState implements TrafficLightState {
-
-    // TODO: Định nghĩa thời gian đèn vàng (VD: 3000ms)
+    private static final long DURATION = 3000;
 
     @Override
     public void handle() {
-        // TODO: In ra log "Đèn VÀNG - Chuẩn bị dừng"
+        System.out.println("Đèn VÀNG - Chuẩn bị dừng");
     }
 
     @Override
     public TrafficLightState nextState() {
-        // TODO: return new RedState();
-        return null;
+        return new RedState();
     }
 
     @Override
@@ -27,7 +20,6 @@ public class YellowState implements TrafficLightState {
 
     @Override
     public long getDuration() {
-        // TODO: return thời gian đèn vàng
-        return 0;
+        return DURATION;
     }
 }

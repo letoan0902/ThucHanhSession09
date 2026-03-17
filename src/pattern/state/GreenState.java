@@ -1,23 +1,16 @@
 package pattern.state;
 
-/**
- * Trạng thái ĐÈN XANH - Cho phép phương tiện di chuyển.
- * Chuyển sang YellowState sau khi hết thời gian.
- *
- */
 public class GreenState implements TrafficLightState {
-
-    // TODO: Định nghĩa thời gian đèn xanh (VD: 10000ms)
+    private static final long DURATION = 10000;
 
     @Override
     public void handle() {
-        // TODO: In ra log "Đèn XANH - Xe được phép đi"
+        System.out.println("Đèn XANH - Xe được phép đi");
     }
 
     @Override
     public TrafficLightState nextState() {
-        // TODO: return new YellowState();
-        return null;
+        return new YellowState();
     }
 
     @Override
@@ -27,7 +20,6 @@ public class GreenState implements TrafficLightState {
 
     @Override
     public long getDuration() {
-        // TODO: return thời gian đèn xanh
-        return 0;
+        return DURATION;
     }
 }
