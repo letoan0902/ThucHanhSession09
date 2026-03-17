@@ -9,22 +9,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Bộ điều phối mô phỏng - Điều khiển toàn bộ luồng chạy của hệ thống.
- * Khởi tạo đèn, ngã tư, sinh xe, và chạy mô phỏng trong khoảng thời gian nhất định.
- *
- *  
- */
 public class SimulationEngine {
 
-    private static final int SIMULATION_DURATION_SECONDS = 60;  // Thời gian mô phỏng
-    private static final int VEHICLE_SPAWN_INTERVAL_MS = 2000;  // Mỗi 2 giây sinh 1 xe
+    private static final int SIMULATION_DURATION_SECONDS = 60;
+    private static final int VEHICLE_SPAWN_INTERVAL_MS = 2000;
 
     private final TrafficLight trafficLight;
     private final Intersection intersection;
-    private final ExecutorService vehicleExecutor;  // Thread pool quản lý các xe
+    private final ExecutorService vehicleExecutor;
 
-    // TODO: Constructor - khởi tạo trafficLight, intersection, ExecutorService
+    private volatile boolean running = true;
 
     public SimulationEngine() {
         this.trafficLight = new TrafficLight();
@@ -32,31 +26,64 @@ public class SimulationEngine {
         this.vehicleExecutor = Executors.newCachedThreadPool();
     }
 
-    /**
-     * Bắt đầu mô phỏng.
-     * 1. Khởi chạy thread đèn giao thông (Daemon Thread)
-     * 2. Vòng lặp sinh xe mới → submit vào ExecutorService
-     * 3. Sau khi hết thời gian → shutdown và in thống kê
-     */
     public void startSimulation() {
-        // TODO: Tạo daemon thread cho TrafficLight
-        // TODO: Vòng lặp sinh xe:
-        //   Vehicle v = VehicleFactory.createRandomVehicle(id, direction);
-        //   trafficLight.registerObserver(v);
-        //   vehicleExecutor.submit(v);
-        // TODO: Sau SIMULATION_DURATION_SECONDS → gọi stopSimulation()
+
+        TrafficLogger.log("🚦 Simulation started...");
+
+        // 🔹 1. chạy TrafficLight (daemon thread)
+        Thread lightThread = new Thread(trafficLight);
+        lightThread.setDaemon(true);
+        lightThread.start();
+
+        // 🔹 2. sinh xe liên tục
+        new Thread(() -> {
+            int id = 1;
+
+            while (running) {
+                try {
+                    Vehicle v = VehicleFactory.createRandomVehicle(id++, trafficLight, intersection);
+                    // đăng ký observer
+                    trafficLight.registerObserver(v);
+                    vehicleExecutor.submit(v);
+                    Thread.sleep(VEHICLE_SPAWN_INTERVAL_MS);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+        //hẹn giờ stop simulation
+        new Thread(() -> {
+            try {
+                Thread.sleep(SIMULATION_DURATION_SECONDS * 1000L);
+                stopSimulation();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }).start();
     }
 
-    /**
-     * Dừng mô phỏng.
-     * Shutdown ExecutorService và in báo cáo thống kê.
-     */
     public void stopSimulation() {
-        // TODO: vehicleExecutor.shutdown();
-        // TODO: In thống kê cuối cùng (tổng xe, số lần kẹt xe...)
+
+        running = false;
+
+        TrafficLogger.log("Stopping simulation...");
+
+        vehicleExecutor.shutdown();
+
+        try {
+            if (!vehicleExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                vehicleExecutor.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            vehicleExecutor.shutdownNow();
+        }
+
+        // 🔹 in thống kê
+        TrafficLogger.log("Simulation finished!");
+        TrafficStatistics.printReport();
     }
 
-    // Getters cho testing
     public TrafficLight getTrafficLight() {
         return trafficLight;
     }
