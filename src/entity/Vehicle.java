@@ -2,60 +2,111 @@ package entity;
 
 import pattern.observer.TrafficSignalObserver;
 
-/**
- * Lớp cha trừu tượng đại diện cho tất cả phương tiện giao thông.
- * Mỗi Vehicle có thể chạy trên một thread riêng (implements Runnable).
- * Đồng thời là Observer để lắng nghe tín hiệu đèn giao thông.
- *
- */
+//Lớp cha trừu tượng đại diện cho tất cả phương tiện giao thông. Mỗi Vehicle chạy trên một thread riêng (Runnable)
+
 public abstract class Vehicle implements Runnable, TrafficSignalObserver {
-
     private String id;
-    private String type;        // "Car", "Motorbike", "Truck", "Ambulance"
-    private int speed;          // Tốc độ di chuyển (đơn vị tùy chọn)
-    private int priority;       // Mức ưu tiên (0 = thường, 1 = ưu tiên cao)
-    private String direction;   // Hướng di chuyển: "NORTH", "SOUTH", "EAST", "WEST"
+    private String type;        // "Car", "Motorbike", ...
+    private int speed;          // Tốc độ di chuyển
+    private int priority;       // 0 = thường, 1 = ưu tiên
+    private String direction;   // NORTH, SOUTH, EAST, WEST
 
-    // TODO: Constructor
+    //Biến trạng thái nội bộ
+    protected volatile boolean isRunning = true;   // thread còn chạy
+    protected volatile String currentSignal = "RED"; // trạng thái đèn hiện tại
 
-    // TODO: Getter / Setter
+    //CONSTRUCTOR
+    public Vehicle(String id, String type, int speed, int priority, String direction) {
+        this.id = id;
+        this.type = type;
+        this.speed = speed;
+        this.priority = priority;
+        this.direction = direction;
+    }
 
-    /**
-     * Phương tiện di chuyển về phía ngã tư.
-     * Logic: giảm khoảng cách đến ngã tư theo tốc độ.
-     */
+    //GETTER
+    public String getId() {
+        return id;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public String getDirection() {
+        return direction;
+    }
+
+    //SETTER
+    public void setSpeed(int speed) {
+        this.speed = speed;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
+
+    //ABSTRACT METHODS
+
+    //Di chuyển về phía ngã tư
     public abstract void moveTowardIntersection();
 
-    /**
-     * Phương tiện dừng lại (khi gặp đèn đỏ hoặc xe chắn phía trước).
-     */
+    //dừng lại
     public abstract void stop();
 
-    /**
-     * Kiểm tra xem phương tiện có được ưu tiên hay không (VD: xe cứu thương).
-     * @return true nếu là xe ưu tiên
-     */
+     //Kiểm tra có phải xe ưu tiên không
     public abstract boolean isPriority();
 
-    /**
-     * Logic chạy của thread - mỗi xe tự di chuyển, kiểm tra đèn, xin vào ngã tư.
-     */
+    //THREAD LOGIC
     @Override
     public void run() {
-        // TODO: Implement thread logic
+        try {
+            while (isRunning) {
+
+                // 1. Di chuyển về phía ngã tư
+                moveTowardIntersection();
+
+                // 2. Kiểm tra tín hiệu đèn
+                if ("RED".equals(currentSignal) && !isPriority()) {
+                    stop(); // xe thường phải dừng
+                } else {
+                    // Đèn xanh hoặc xe ưu tiên → đi tiếp
+                    System.out.println(this + " is moving through intersection");
+                }
+
+                // 3. Giả lập thời gian di chuyển
+                Thread.sleep(1000 / speed);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println(this + " interrupted.");
+        }
     }
 
-    /**
-     * Nhận tín hiệu từ đèn giao thông (Observer Pattern).
-     * @param signalState trạng thái đèn: "GREEN", "YELLOW", "RED"
-     */
+    //OBSERVER
+     //Nhận tín hiệu từ TrafficLight
     @Override
     public void onSignalChanged(String signalState) {
-        // TODO: Implement observer logic
+        System.out.println(this + " received signal: " + signalState);
+        this.currentSignal = signalState;
+
+        // Nếu đèn đỏ và không phải xe ưu tiên → dừng
+        if ("RED".equals(signalState) && !isPriority()) {
+            stop();
+        }
     }
 
+    //TO STRING
     @Override
     public String toString() {
-        return type + " #" + id;
+        return type + " #" + id + " [" + direction + "]";
     }
 }
