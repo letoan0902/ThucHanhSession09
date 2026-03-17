@@ -23,16 +23,20 @@ public class TrafficLogger {
      *
      * @param message nội dung log
      */
-    public static void log(String message) {
-        // TODO: Tính thời gian đã trôi qua từ startTime
-        // TODO: In ra theo format: [Time: XXs] message
+    public static synchronized void log(String message) {
+        long elapsedMillis = System.currentTimeMillis() - startTime;
+        long seconds = elapsedMillis / 1000;
+        System.out.println("[Time: " + seconds + "s] " + message);
     }
 
     /**
      * In log cảnh báo (VD: kẹt xe, lỗi).
+     * 
      * @param message nội dung cảnh báo
      */
-    public static void warn(String message) {
-        // TODO: In ra theo format: [WARNING - Time: XXs] message
+    public static synchronized void warn(String message) {
+        long elapsedMillis = System.currentTimeMillis() - startTime;
+        long seconds = elapsedMillis / 1000;
+        System.out.println("[WARNING - Time: " + seconds + "s] " + message);
     }
 }
