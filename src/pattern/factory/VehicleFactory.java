@@ -20,4 +20,9 @@ public class VehicleFactory {
             return new Ambulance(id, direction);
         }
     }
+
+    // Instance method alias - dùng trong test
+    public Vehicle createVehicle(String id, String direction) {
+        return createRandomVehicle(id, direction);
+    }
 }

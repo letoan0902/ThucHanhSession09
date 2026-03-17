@@ -7,13 +7,11 @@ import util.TrafficLogger;
  */
 public class Main {
     public static void main(String[] args) {
-        System.out.println("=== SMART TRAFFIC SIMULATOR ===");
+        System.out.println("=== HỆ THỐNG MÔ PHỎNG GIAO THÔNG THÔNG MINH ===");
         System.out.println("Khởi động hệ thống mô phỏng giao thông...\n");
 
-        // TODO: Khởi tạo SimulationEngine
-        // TODO: Gọi startSimulation()
-
-        // SimulationEngine engine = new SimulationEngine();
-        // engine.startSimulation();
+        // Khởi tạo và chạy SimulationEngine
+        SimulationEngine engine = new SimulationEngine();
+        engine.startSimulation();
     }
 }

@@ -1,5 +1,7 @@
 package entity;
 
+import util.TrafficLogger;
+
 
  //Xe tải phương tiện thường, tốc độ chậm, kích thước lớn.
 public class Truck extends StandardVehicle {
@@ -12,13 +14,13 @@ public class Truck extends StandardVehicle {
     //Di chuyển về phía ngã tư với tốc độ chậm
     @Override
     public void moveTowardIntersection() {
-        System.out.println( this + " is slowly moving toward intersection...");
+        TrafficLogger.log(this + " đang di chuyển chậm về phía ngã tư...");
     }
 
      // Dừng xe (khi đèn đỏ hoặc bị chặn)
     @Override
     public void stop() {
-        System.out.println(this + " is stopping due to RED light or obstacle.");
+        TrafficLogger.log(this + " đang dừng lại do đèn ĐỎ hoặc có chướng ngại vật.");
     }
 
      //Xe tải KHÔNG phải xe ưu tiên

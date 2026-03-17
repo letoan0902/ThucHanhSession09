@@ -1,6 +1,10 @@
 package entity;
 
 import pattern.observer.TrafficSignalObserver;
+import engine.Intersection;
+import exception.CollisionException;
+import exception.TrafficJamException;
+import util.TrafficLogger;
 
 //Lớp cha trừu tượng đại diện cho tất cả phương tiện giao thông. Mỗi Vehicle chạy trên một thread riêng (Runnable)
 
@@ -13,7 +17,10 @@ public abstract class Vehicle implements Runnable, TrafficSignalObserver {
 
     //Biến trạng thái nội bộ
     protected volatile boolean isRunning = true;   // thread còn chạy
-    protected volatile String currentSignal = "RED"; // trạng thái đèn hiện tại
+    protected volatile String currentSignal = "GREEN"; // trạng thái đèn hiện tại (bắt đầu XANH)
+
+    // Tham chiếu đến ngã tư
+    protected Intersection intersection;
 
     //CONSTRUCTOR
     public Vehicle(String id, String type, int speed, int priority, String direction) {
@@ -54,6 +61,10 @@ public abstract class Vehicle implements Runnable, TrafficSignalObserver {
         this.direction = direction;
     }
 
+    public void setIntersection(Intersection intersection) {
+        this.intersection = intersection;
+    }
+
     //ABSTRACT METHODS
 
     //Di chuyển về phía ngã tư
@@ -69,25 +80,45 @@ public abstract class Vehicle implements Runnable, TrafficSignalObserver {
     @Override
     public void run() {
         try {
-            while (isRunning) {
+            while (isRunning && !Thread.currentThread().isInterrupted()) {
 
                 // 1. Di chuyển về phía ngã tư
                 moveTowardIntersection();
+                Thread.sleep(2000);
 
-                // 2. Kiểm tra tín hiệu đèn
+                // 2. Nếu đèn đỏ và không phải xe ưu tiên → dừng chờ
                 if ("RED".equals(currentSignal) && !isPriority()) {
-                    stop(); // xe thường phải dừng
-                } else {
-                    // Đèn xanh hoặc xe ưu tiên → đi tiếp
-                    System.out.println(this + " is moving through intersection");
+                    stop(); // log 1 lần duy nhất
+                    // Chờ đến khi đèn chuyển xanh (không spam log)
+                    while ("RED".equals(currentSignal) && isRunning && !Thread.currentThread().isInterrupted()) {
+                        Thread.sleep(2000);
+                    }
+                    if (!isRunning || Thread.currentThread().isInterrupted()) break;
                 }
 
-                // 3. Giả lập thời gian di chuyển
-                Thread.sleep(1000 / speed);
+                // 3. Đèn xanh hoặc xe ưu tiên → đi qua ngã tư
+                if (intersection != null) {
+                    try {
+                        intersection.enterIntersection(this);
+                        TrafficLogger.log(this + " đang đi qua ngã tư");
+                        Thread.sleep(3000); // thời gian qua ngã tư
+                        intersection.exitIntersection(this);
+                    } catch (TrafficJamException e) {
+                        TrafficLogger.log(this + " gặp kẹt xe, chờ thử lại...");
+                    } catch (CollisionException e) {
+                        TrafficLogger.log(this + " phát hiện nguy cơ va chạm!");
+                    }
+                } else {
+                    TrafficLogger.log(this + " đang đi qua ngã tư");
+                    Thread.sleep(3000);
+                }
+
+                // 4. Nghỉ trước khi lặp lại
+                Thread.sleep(2000);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            System.out.println(this + " interrupted.");
+            TrafficLogger.log(this + " đã bị gián đoạn.");
         }
     }
 
@@ -95,7 +126,7 @@ public abstract class Vehicle implements Runnable, TrafficSignalObserver {
      //Nhận tín hiệu từ TrafficLight
     @Override
     public void onSignalChanged(String signalState) {
-        System.out.println(this + " received signal: " + signalState);
+        TrafficLogger.log(this + " nhận tín hiệu: " + signalState);
         this.currentSignal = signalState;
 
         // Nếu đèn đỏ và không phải xe ưu tiên → dừng

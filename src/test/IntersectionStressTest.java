@@ -4,7 +4,7 @@ import entity.*;
 import exception.CollisionException;
 import exception.TrafficJamException;
 import org.junit.jupiter.api.Test;
-import util.Intersection;
+import engine.Intersection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +30,8 @@ public class IntersectionStressTest {
             futures.add(executor.submit(() -> {
                 try {
                     intersection.enter(v);
-                } catch (CollisionException e) {
-                    fail("Không được xảy ra CollisionException");
+                } catch (Exception e) {
+                    fail("Không được xảy ra Exception: " + e.getMessage());
                 }
             }));
         }
@@ -56,13 +56,21 @@ public class IntersectionStressTest {
         List<String> order = new CopyOnWriteArrayList<>();
 
         executor.submit(() -> {
-            intersection.enter(car);
-            order.add("car");
+            try {
+                intersection.enter(car);
+                order.add("car");
+            } catch (Exception e) {
+                fail("Không được xảy ra exception: " + e.getMessage());
+            }
         });
 
         executor.submit(() -> {
-            intersection.enter(ambulance);
-            order.add("ambulance");
+            try {
+                intersection.enter(ambulance);
+                order.add("ambulance");
+            } catch (Exception e) {
+                fail("Không được xảy ra exception: " + e.getMessage());
+            }
         });
 
         executor.shutdown();

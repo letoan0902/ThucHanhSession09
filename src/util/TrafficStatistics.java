@@ -13,6 +13,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class TrafficStatistics {
 
+    // Shared instance cho static access (SimulationEngine)
+    private static final TrafficStatistics INSTANCE = new TrafficStatistics();
+
     private final AtomicInteger totalVehiclesPassed = new AtomicInteger(0);
     private final AtomicInteger trafficJamCount = new AtomicInteger(0);
     private final ConcurrentHashMap<String, AtomicInteger> vehicleCountByType = new ConcurrentHashMap<>();
@@ -29,6 +32,13 @@ public class TrafficStatistics {
         vehicleCountByType
                 .computeIfAbsent(vehicleType, k -> new AtomicInteger(0))
                 .incrementAndGet();
+    }
+
+    /**
+     * Ghi nhận 1 xe đã qua (không cần Vehicle - dùng trong test).
+     */
+    public void recordVehiclePassed() {
+        totalVehiclesPassed.incrementAndGet();
     }
 
     /**
@@ -61,15 +71,25 @@ public class TrafficStatistics {
      * Dùng Stream API để thống kê số xe theo loại.
      */
     public void printReport() {
-        System.out.println("\n========== TRAFFIC STATISTICS REPORT ==========");
-        System.out.println("Total vehicles passed: " + getTotalVehiclesPassed());
+        System.out.println("\n========== BÁO CÁO THỐNG KÊ GIAO THÔNG ==========");
+        System.out.println("Tổng số xe đã qua ngã tư: " + getTotalVehiclesPassed());
 
-        System.out.println("\nVehicle count by type:");
+        System.out.println("\nSố lượng xe theo loại:");
         vehicleCountByType.entrySet()
                 .stream()
                 .forEach(entry -> System.out.println("- " + entry.getKey() + ": " + entry.getValue().get()));
 
-        System.out.println("\nTraffic jam occurrences: " + getTrafficJamCount());
+        System.out.println("\nSố lần kẹt xe: " + getTrafficJamCount());
         System.out.println("===============================================\n");
+    }
+
+    // Static access cho SimulationEngine
+    public static TrafficStatistics getInstance() {
+        return INSTANCE;
+    }
+
+    // Static printReport cho SimulationEngine
+    public static void printGlobalReport() {
+        INSTANCE.printReport();
     }
 }

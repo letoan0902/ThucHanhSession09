@@ -1,5 +1,7 @@
 package entity;
 
+import util.TrafficLogger;
+
 //Xe cứu thương - phương tiện ƯU TIÊN, được vượt đèn đỏ và nhường đường.
 public class Ambulance extends PriorityVehicle {
 
@@ -10,12 +12,12 @@ public class Ambulance extends PriorityVehicle {
     //Di chuyển nhanh, thể hiện tính khẩn cấp
     @Override
     public void moveTowardIntersection() {
-        System.out.println( this + " is rushing quickly to the intersection!");
+        TrafficLogger.log(this + " đang lao nhanh đến ngã tư!");
     }
 
     //Xe cứu thương hầu như không dừng, chỉ giảm tốc nếu cần
     @Override
     public void stop() {
-        System.out.println(this + " slows down but keeps moving (priority override).");
+        TrafficLogger.log(this + " giảm tốc nhưng vẫn tiếp tục di chuyển (quyền ưu tiên).");
     }
 }

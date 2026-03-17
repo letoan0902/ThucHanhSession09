@@ -8,17 +8,21 @@ import util.TrafficStatistics;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 public class SimulationEngine {
 
     private static final int SIMULATION_DURATION_SECONDS = 60;
-    private static final int VEHICLE_SPAWN_INTERVAL_MS = 2000;
+    private static final int VEHICLE_SPAWN_INTERVAL_MS = 5000;
+    private static final int MAX_VEHICLES = 3;
 
     private final TrafficLight trafficLight;
     private final Intersection intersection;
     private final ExecutorService vehicleExecutor;
 
     private volatile boolean running = true;
+    private static final String[] DIRECTIONS = {"NORTH", "SOUTH", "EAST", "WEST"};
+    private static final Random random = new Random();
 
     public SimulationEngine() {
         this.trafficLight = new TrafficLight();
@@ -28,7 +32,7 @@ public class SimulationEngine {
 
     public void startSimulation() {
 
-        TrafficLogger.log("🚦 Simulation started...");
+        TrafficLogger.log("🚦 Bắt đầu mô phỏng...");
 
         // 🔹 1. chạy TrafficLight (daemon thread)
         Thread lightThread = new Thread(trafficLight);
@@ -39,9 +43,12 @@ public class SimulationEngine {
         new Thread(() -> {
             int id = 1;
 
-            while (running) {
+            while (running && id <= MAX_VEHICLES) {
                 try {
-                    Vehicle v = VehicleFactory.createRandomVehicle(id++, trafficLight, intersection);
+                    String direction = DIRECTIONS[random.nextInt(DIRECTIONS.length)];
+                    Vehicle v = VehicleFactory.createRandomVehicle(String.valueOf(id++), direction);
+                    // gán ngã tư cho xe
+                    v.setIntersection(intersection);
                     // đăng ký observer
                     trafficLight.registerObserver(v);
                     vehicleExecutor.submit(v);
@@ -67,7 +74,7 @@ public class SimulationEngine {
 
         running = false;
 
-        TrafficLogger.log("Stopping simulation...");
+        TrafficLogger.log("Đang dừng mô phỏng...");
 
         vehicleExecutor.shutdown();
 
@@ -80,8 +87,8 @@ public class SimulationEngine {
         }
 
         // 🔹 in thống kê
-        TrafficLogger.log("Simulation finished!");
-        TrafficStatistics.printReport();
+        TrafficLogger.log("Mô phỏng kết thúc!");
+        TrafficStatistics.printGlobalReport();
     }
 
     public TrafficLight getTrafficLight() {

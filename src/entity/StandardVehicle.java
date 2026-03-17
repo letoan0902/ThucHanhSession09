@@ -1,5 +1,7 @@
 package entity;
 
+import util.TrafficLogger;
+
 //Lớp trung gian đại diện cho các phương tiện THƯỜNG (không ưu tiên). Các xe thường phải tuân thủ đèn giao thông.
 public abstract class StandardVehicle extends Vehicle {
 
@@ -16,12 +18,12 @@ public abstract class StandardVehicle extends Vehicle {
     //Logic dừng chung cho tất cả xe thường
     @Override
     public void stop() {
-        System.out.println(  this + " is waiting at RED light...");
+        TrafficLogger.log(this + " đang chờ đèn ĐỎ...");
     }
 
     //Logic di chuyển chung (có thể override ở class con nếu cần)
     @Override
     public void moveTowardIntersection() {
-        System.out.println( this + " is moving toward intersection...");
+        TrafficLogger.log(this + " đang di chuyển về phía ngã tư...");
     }
 }

@@ -4,6 +4,7 @@ import pattern.state.TrafficLightState;
 import pattern.state.GreenState;
 import pattern.observer.TrafficSignalSubject;
 import pattern.observer.TrafficSignalObserver;
+import util.TrafficLogger;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -21,11 +22,26 @@ public class TrafficLight implements Runnable, TrafficSignalSubject {
         return currentState.getStateName();
     }
 
+    // Alias cho test
+    public String getStateName() {
+        return getCurrentStateName();
+    }
+
+    // Getter cho test
+    public TrafficLightState getCurrentState() {
+        return currentState;
+    }
+
     public void changeState() {
         currentState = currentState.nextState();
-        System.out.println("🚦 Traffic Light changed to: " + getCurrentStateName());
+        TrafficLogger.log("🚦 Đèn giao thông chuyển sang: " + getCurrentStateName());
 
         notifyObservers(); // báo cho xe
+    }
+
+    // Alias cho test
+    public void nextState() {
+        changeState();
     }
 
     @Override

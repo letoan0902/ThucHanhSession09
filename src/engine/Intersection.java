@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Intersection {
 
     private static final int MAX_VEHICLES_IN_INTERSECTION = 2;
-    private static final int MAX_QUEUE_CAPACITY = 20;
+    private final int maxQueueCapacity;
 
     private final Semaphore semaphore = new Semaphore(MAX_VEHICLES_IN_INTERSECTION, true);
     private final ReentrantLock lock = new ReentrantLock(true);
@@ -23,22 +23,30 @@ public class Intersection {
     private int totalPassed = 0;
     private int trafficJamCount = 0;
 
+    public Intersection() {
+        this.maxQueueCapacity = 4;
+    }
+
+    public Intersection(int maxQueueCapacity) {
+        this.maxQueueCapacity = maxQueueCapacity;
+    }
+
     public void enterIntersection(Vehicle vehicle)
             throws TrafficJamException, CollisionException {
 
         try {
             lock.lock();
             // kiểm tra kẹt xe
-            if (waitingQueue.size() > MAX_QUEUE_CAPACITY) {
+            if (waitingQueue.size() > maxQueueCapacity) {
                 trafficJamCount++;
-                TrafficLogger.log("Traffic Jam detected!");
-                throw new TrafficJamException("Too many vehicles waiting!");
+                TrafficLogger.log("⚠️ Phát hiện kẹt xe!");
+                throw new TrafficJamException("Quá nhiều xe đang chờ!");
             }
 
             // xe ưu tiên
             if (!(vehicle instanceof PriorityVehicle)) {
                 waitingQueue.add(vehicle);
-                TrafficLogger.log(vehicle + " is waiting...");
+                TrafficLogger.log(vehicle + " đang chờ...");
             }
 
         } finally {
@@ -55,10 +63,10 @@ public class Intersection {
             } finally {
                 lock.unlock();
             }
-            TrafficLogger.log(vehicle + " ENTERED intersection");
+            TrafficLogger.log(vehicle + " ĐÃ VÀO ngã tư");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new CollisionException("Thread interrupted → possible collision!");
+            throw new CollisionException("Luồng bị gán đoạn → có thể xảy ra va chạm!");
         }
     }
 
@@ -71,7 +79,15 @@ public class Intersection {
             lock.unlock();
         }
 
-        TrafficLogger.log(vehicle + " EXITED intersection");
+        // Cập nhật thống kê
+        TrafficStatistics.getInstance().recordVehiclePassed(vehicle);
+
+        TrafficLogger.log(vehicle + " ĐÃ RA KHỎI ngã tư");
+    }
+
+    // Alias method - dùng trong test
+    public void enter(Vehicle vehicle) throws TrafficJamException, CollisionException {
+        enterIntersection(vehicle);
     }
 
     public void addToWaitingQueue(Vehicle vehicle) {

@@ -1,8 +1,8 @@
 package test;
 
 import org.junit.jupiter.api.Test;
-import pattern.state.TrafficLight;
-import pattern.state.LightState;
+import engine.TrafficLight;
+import pattern.state.TrafficLightState;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,7 +42,7 @@ public class TrafficLightStateTest {
         TrafficLight light = new TrafficLight();
 
         for (int i = 0; i < 3; i++) {
-            LightState state = light.getCurrentState();
+            TrafficLightState state = light.getCurrentState();
 
             assertTrue(state.getDuration() > 0,
                     "Thời gian trạng thái phải > 0");

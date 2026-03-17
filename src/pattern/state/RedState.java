@@ -1,11 +1,13 @@
 package pattern.state;
 
+import util.TrafficLogger;
+
 public class RedState implements TrafficLightState {
     private static final long DURATION = 10000;
 
     @Override
     public void handle() {
-        System.out.println("Đèn ĐỎ - Dừng lại");
+        TrafficLogger.log("Đèn ĐỎ - Dừng lại");
     }
 
     @Override
