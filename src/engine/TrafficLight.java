@@ -8,65 +8,58 @@ import pattern.observer.TrafficSignalObserver;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Đèn giao thông - Chạy trên Daemon Thread, tự động chuyển trạng thái.
- * Sử dụng State Pattern để quản lý trạng thái.
- * Sử dụng Observer Pattern để thông báo cho các xe khi đèn thay đổi.
- *
- *  
- */
 public class TrafficLight implements Runnable, TrafficSignalSubject {
 
     private TrafficLightState currentState;
     private final List<TrafficSignalObserver> observers = new CopyOnWriteArrayList<>();
 
-    // TODO: Constructor - khởi tạo trạng thái ban đầu (GreenState)
+    public TrafficLight() {
+        this.currentState = new GreenState(); // bắt đầu GREEN
+    }
 
-    /**
-     * Lấy trạng thái hiện tại của đèn.
-     * @return tên trạng thái: "GREEN", "YELLOW", "RED"
-     */
     public String getCurrentStateName() {
-        // TODO: return currentState.getStateName();
-        return null;
+        return currentState.getStateName();
     }
 
-    /**
-     * Chuyển sang trạng thái tiếp theo (GREEN → YELLOW → RED → GREEN).
-     * Sau khi chuyển, thông báo cho tất cả observers.
-     */
     public void changeState() {
-        // TODO: currentState = currentState.nextState();
-        // TODO: notifyObservers();
+        currentState = currentState.nextState();
+        System.out.println("🚦 Traffic Light changed to: " + getCurrentStateName());
+
+        notifyObservers(); // báo cho xe
     }
 
-    /**
-     * Logic chạy của thread đèn giao thông.
-     * Vòng lặp: handle trạng thái hiện tại → sleep đúng duration → chuyển trạng thái.
-     */
     @Override
     public void run() {
-        // TODO: while (!Thread.currentThread().isInterrupted()) {
-        //   currentState.handle();
-        //   Thread.sleep(currentState.getDuration());
-        //   changeState();
-        // }
+        try {
+            while (!Thread.currentThread().isInterrupted()) {
+
+                currentState.handle(); // in trạng thái
+
+                Thread.sleep(currentState.getDuration()); // đợi theo state
+
+                changeState(); // chuyển trạng thái
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
-    // ==================== Observer Pattern Methods ====================
+    // Observer Pattern
 
     @Override
     public void registerObserver(TrafficSignalObserver observer) {
-        // TODO: observers.add(observer);
+        observers.add(observer);
     }
 
     @Override
     public void removeObserver(TrafficSignalObserver observer) {
-        // TODO: observers.remove(observer);
+        observers.remove(observer);
     }
 
     @Override
     public void notifyObservers() {
-        // TODO: Duyệt qua tất cả observers và gọi onSignalChanged()
+        for (TrafficSignalObserver observer : observers) {
+            observer.onSignalChanged(getCurrentStateName());
+        }
     }
 }
